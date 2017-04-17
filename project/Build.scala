@@ -3,8 +3,10 @@ import sbt.Keys._
 import com.typesafe.sbt.SbtScalariform
 import com.typesafe.sbt.SbtScalariform.ScalariformKeys
 import scalariform.formatter.preferences._
-import xerial.sbt.Sonatype._
-import xerial.sbt.Sonatype.SonatypeKeys._
+// import xerial.sbt.Sonatype._
+// import xerial.sbt.Sonatype.SonatypeKeys._
+import bintray.BintrayPlugin
+import bintray.BintrayPlugin.autoImport._
 import sbtassembly.AssemblyPlugin.autoImport._
 
 object ScalariformBuild extends Build {
@@ -21,10 +23,11 @@ object ScalariformBuild extends Build {
       |Using 1.7 to build requires setting SBT to use JDK 1.7 or higher -- if SBT is
       |booting on JDK 1.6, you will get a javax.swing related compilation error.""".stripMargin
 
-  lazy val commonSettings = Defaults.defaultSettings ++ SbtScalariform.defaultScalariformSettings ++ sonatypeSettings ++ Seq(
+  lazy val commonSettings = Defaults.defaultSettings ++ SbtScalariform.defaultScalariformSettings ++ // ++ sonatypeSettings
+    Seq(
     organization := "org.scalariform",
-    profileName := "org.scalariform",
-    version := "0.1.8",
+    // profileName := "org.scalariform",
+    version := "0.1.8-sbtsandbox1",
     scalaVersion := "2.12.1",
     crossScalaVersions := Seq(
       "2.11.7",
@@ -33,7 +36,15 @@ object ScalariformBuild extends Build {
     ),
     exportJars := true, // Needed for cli oneJar
     retrieveManaged := true,
-    scalacOptions += "-deprecation"
+    scalacOptions += "-deprecation",
+    licenses := Seq("MIT" -> url("http://www.opensource.org/licenses/mit-license.php"))
+  )
+
+  lazy val bintrayPublishSettings: Seq[Def.Setting[_]] = Seq(
+    bintrayOrganization := Some("sbt"),
+    bintrayRepository := "sbtsandbox1",
+    bintrayReleaseOnPublish := false,
+    bintrayPackage := "scalariform"
   )
 
   lazy val subprojectSettings = commonSettings ++ Seq(
@@ -81,12 +92,14 @@ object ScalariformBuild extends Build {
 
   lazy val scalariform: Project = Project("scalariform", file("scalariform"), settings =
     subprojectSettings ++ sbtbuildinfo.Plugin.buildInfoSettings ++ publishSettings("scalariform") ++
+    bintrayPublishSettings ++
       Seq(
         libraryDependencies <<= (scalaVersion, libraryDependencies) { (sv, deps) ⇒
           deps ++ get2_11Dependencies(sv) :+ getScalaTestDependency(sv)
         },
-        testOptions in Test += Tests.Argument("-oI"),
-        publishTo <<= isSnapshot(getPublishToRepo)))
+        testOptions in Test += Tests.Argument("-oI")
+        // publishTo <<= isSnapshot(getPublishToRepo)
+        ))
 
   def getPublishToRepo(isSnapshot: Boolean) =
     if (isSnapshot)
