@@ -25,7 +25,7 @@ object ScalariformBuild extends Build {
     organization := "org.scalariform",
     profileName := "org.scalariform",
     version := "0.1.8",
-    scalaVersion := "2.10.6",
+    scalaVersion := "2.12.1",
     crossScalaVersions := Seq(
       "2.11.7",
       "2.10.6",
@@ -53,17 +53,18 @@ object ScalariformBuild extends Build {
   }
 
   def getScalaTestDependency(scalaVersion: String) = scalaVersion match {
+    case sv if (sv startsWith "2.12") => "org.scalatest" %%  "scalatest" % "3.0.1" % Test
     case r"2.11.\d+[-\w]*" | r"2.10.\d+[-\w]*" => "org.scalatest" %%  "scalatest" % "2.2.4" % "test"
     case "2.9.3" => "org.scalatest" %% "scalatest" % "1.9.1" % "test"
     case _       => "org.scalatest" %% "scalatest" % "1.7.2" % "test"
   }
 
   def get2_11Dependencies(scalaVersion: String): List[ModuleID] = scalaVersion match {
-    case r"2.11.\d+[-\w]*" => List(
-      "org.scala-lang.modules" %% "scala-xml" % "1.0.1",
-      "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.1"
+    case sv if sv startsWith "2.10." => Nil
+    case _ => List(
+      "org.scala-lang.modules" %% "scala-xml" % "1.0.6",
+      "org.scala-lang.modules" %% "scala-parser-combinators" % "1.0.5"
     )
-    case _ => Nil
   }
 
   def publishSettings(projectName: String) = Seq(
